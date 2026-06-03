@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — QuickMart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">🎉 Free delivery on orders above ₹499 — <span>Use code FIRST10 for 10% off your first order</span></div>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">⚡ Quick<span class="logo-dot">Mart</span></a>
+    <div class="nav-search"><input type="text" placeholder="Search products, brands..." id="navSearch"><button onclick="navSearchGo()">🔍</button></div>
+    <div class="nav-actions" id="nav-actions">
+      <a href="products.html" class="nav-btn">🛍 Products</a>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart <span class="badge" id="nav-count">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="orders-page">
+  <h1>My Orders</h1>
+  <div id="ordersList"></div>
+</div>
+
+<script src="products-data.js"></script>
+<script src="qm-shared.js"></script>
+<script>
+  if (!isLoggedIn()) window.location.href = 'login.html?redirect=orders.html';
+
+  async function render() {
+    showLoading('ordersList', 'Fetching your orders from Google Sheets…');
+    const orders = await getMyOrders();
+    const el = document.getElementById('ordersList');
+    if (!orders.length) {
+      el.innerHTML = `<div style="text-align:center;padding:60px 0">
+        <p style="font-size:3rem;margin-bottom:12px">📦</p>
+        <p style="color:var(--muted);margin-bottom:20px">No orders yet</p>
+        <a href="products.html" class="btn-primary" style="display:inline-flex;width:auto">Browse Products →</a>
+      </div>`; return;
+    }
+    el.innerHTML = orders.slice().reverse().map(o => `
+      <div class="order-card">
+        <div class="oc-header">
+          <div><div class="oc-id">Order #${o.orderId}</div><div class="oc-date">${o.time}</div></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge-order" style="padding:5px 13px;border-radius:50px;font-size:.8rem">${(o.payment||'').toUpperCase()}</span>
+            <span style="background:#f0fff4;color:#276749;padding:5px 13px;border-radius:50px;font-size:.8rem;font-weight:700">${o.status||'Placed'}</span>
+          </div>
+        </div>
+        ${(o.cart||[]).map(i=>`<div class="oc-item"><span>${i.emoji||'📦'} ${i.name} × ${i.qty}</span><span>₹${(i.price*i.qty).toLocaleString()}</span></div>`).join('')}
+        <div class="oc-total">Total: ₹${(o.total||0).toLocaleString()}</div>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:6px">📍 ${o.address}</div>
+      </div>`).join('');
+  }
+
+  initNav(); updateBadge(); render();
+</script>
+</body>
+</html>

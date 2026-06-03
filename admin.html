@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — QuickMart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="topbar">🛠 QuickMart Admin Panel — <span>All data synced to Google Sheets</span></div>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">⚡ Quick<span class="logo-dot">Mart</span></a>
+    <div class="nav-search"><input type="text" placeholder="Search..." id="navSearch"><button onclick="navSearchGo()">🔍</button></div>
+    <div class="nav-actions" id="nav-actions">
+      <a href="products.html" class="nav-btn">🛍 Products</a>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart <span class="badge" id="nav-count">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="admin-layout">
+  <div class="admin-sidebar">
+    <h3>Dashboard</h3>
+    <button class="sidebar-link active" onclick="showSection('dashboard',this)">📊 Overview</button>
+    <h3>Catalog</h3>
+    <button class="sidebar-link" onclick="showSection('products',this)">📦 Products</button>
+    <button class="sidebar-link" onclick="showSection('addproduct',this)">➕ Add Product</button>
+    <h3>Customers</h3>
+    <button class="sidebar-link" onclick="showSection('orders',this)">🧾 Orders</button>
+    <button class="sidebar-link" onclick="showSection('users',this)">👥 Users</button>
+    <h3>Settings</h3>
+    <button class="sidebar-link" onclick="showSection('locations',this)">📍 Delivery Zones</button>
+    <button class="sidebar-link" onclick="showSection('settings',this)">⚙️ Site Settings</button>
+    <br>
+    <button class="sidebar-link" onclick="doLogout()" style="color:#ff6b6b">🚪 Logout</button>
+  </div>
+
+  <div class="admin-main">
+
+    <!-- DASHBOARD -->
+    <div class="admin-section active" id="sec-dashboard">
+      <h1 style="margin-bottom:20px">Dashboard <span style="font-size:.8rem;color:var(--muted);font-weight:500">← data from Google Sheets</span></h1>
+      <div class="stat-grid" id="dashStats"><div style="color:var(--muted);padding:20px">Loading…</div></div>
+      <div class="admin-card"><h2>Recent Orders</h2><div id="recentOrders"><div style="color:var(--muted)">Loading…</div></div></div>
+    </div>
+
+    <!-- PRODUCTS LIST -->
+    <div class="admin-section" id="sec-products">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h1>Products</h1>
+        <button class="btn-sm primary" onclick="showSection('addproduct', document.querySelectorAll('.sidebar-link')[2])">➕ Add New</button>
+      </div>
+      <div class="admin-card" style="padding:0;overflow:hidden">
+        <table class="admin-table">
+          <thead><tr><th>ID</th><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Actions</th></tr></thead>
+          <tbody id="productsBody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ADD / EDIT PRODUCT -->
+    <div class="admin-section" id="sec-addproduct">
+      <h1 id="formTitle" style="margin-bottom:20px">Add Product</h1>
+      <div class="admin-card" style="max-width:680px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="form-group" style="grid-column:1/-1"><label>Product Name *</label><input type="text" id="fp-name" placeholder="e.g. Wireless Earbuds"></div>
+          <div class="form-group"><label>Brand *</label><input type="text" id="fp-brand" placeholder="e.g. SoundCore"></div>
+          <div class="form-group"><label>Category *</label>
+            <select id="fp-cat">
+              <option value="electronics">📱 Electronics</option>
+              <option value="fashion">👕 Fashion</option>
+              <option value="home">🏠 Home</option>
+              <option value="beauty">💄 Beauty</option>
+              <option value="sports">⚽ Sports</option>
+              <option value="books">📚 Books</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Selling Price (₹) *</label><input type="number" id="fp-price" placeholder="799"></div>
+          <div class="form-group"><label>MRP / Original Price (₹)</label><input type="number" id="fp-mrp" placeholder="1299"></div>
+          <div class="form-group"><label>Emoji (fallback icon)</label><input type="text" id="fp-emoji" placeholder="🎧" maxlength="4"></div>
+          <div class="form-group"><label>Delivery Days</label><input type="number" id="fp-delivery" placeholder="3" min="1" max="30"></div>
+          <div class="form-group" style="grid-column:1/-1"><label>Short Description *</label><input type="text" id="fp-desc" placeholder="e.g. True wireless, 24hr battery life"></div>
+          <div class="form-group" style="grid-column:1/-1"><label>Key Highlights (one per line)</label><textarea id="fp-highlights" rows="4" placeholder="True wireless with Bluetooth 5.3&#10;24-hour total battery life&#10;IPX5 water resistant"></textarea></div>
+          <div class="form-group" style="grid-column:1/-1"><label>Available Colors (comma separated)</label><input type="text" id="fp-colors" placeholder="Midnight Black, Pearl White, Coral Pink"></div>
+          <div class="form-group" style="grid-column:1/-1">
+            <label>Product Images</label>
+            <div class="upload-zone" onclick="document.getElementById('fp-imgs').click()">
+              <input type="file" id="fp-imgs" accept="image/*" multiple onchange="previewImages(this)">
+              <div>📷 Click to upload product photos</div>
+              <small style="color:var(--muted)">JPG, PNG, WEBP — multiple allowed</small>
+            </div>
+            <div class="img-preview-grid" id="imgPreviewGrid"></div>
+          </div>
+        </div>
+        <div id="fp-err" class="auth-err" style="margin-top:8px"></div>
+        <div id="fp-ok"  class="auth-ok"  style="margin-top:8px"></div>
+        <input type="hidden" id="fp-edit-id">
+        <button class="btn-full" id="saveProductBtn" style="margin-top:16px" onclick="saveProductForm()">💾 Save Product to Google Sheets</button>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="admin-section" id="sec-orders">
+      <h1 style="margin-bottom:20px">All Orders</h1>
+      <div class="admin-card" style="padding:0;overflow:hidden">
+        <table class="admin-table">
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody id="ordersBody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="admin-section" id="sec-users">
+      <h1 style="margin-bottom:20px">Registered Users</h1>
+      <div class="admin-card" style="padding:0;overflow:hidden">
+        <table class="admin-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="usersBody"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DELIVERY ZONES -->
+    <div class="admin-section" id="sec-locations">
+      <h1 style="margin-bottom:20px">Delivery Zones</h1>
+      <div class="admin-card" style="max-width:560px">
+        <p style="color:var(--muted);margin-bottom:16px;font-size:.88rem">Cities you deliver to. Customers outside these see a warning and cannot order.</p>
+        <div class="form-group"><label>Serviceable Cities (one per line)</label><textarea id="zonesInput" rows="8" placeholder="Hyderabad&#10;Secunderabad&#10;Bangalore&#10;Mumbai"></textarea></div>
+        <button class="btn-full" id="zonesBtn" onclick="saveZonesForm()">💾 Save to Google Sheets</button>
+        <div id="zonesOk" class="auth-ok" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="admin-section" id="sec-settings">
+      <h1 style="margin-bottom:20px">Site Settings</h1>
+      <div class="admin-card" style="max-width:560px">
+        <div class="form-group"><label>UPI ID for Payments</label><input type="text" id="set-upi" placeholder="yourname@upi"></div>
+        <div class="form-group"><label>Store Name</label><input type="text" id="set-name" placeholder="QuickMart"></div>
+        <div class="form-group"><label>Topbar Announcement</label><input type="text" id="set-topbar" placeholder="🎉 Free delivery on orders above ₹499"></div>
+        <div class="form-group"><label>Free Delivery Above (₹)</label><input type="number" id="set-free-del" placeholder="499"></div>
+        <button class="btn-full" id="settingsBtn" onclick="saveSettingsForm()">💾 Save to Google Sheets</button>
+        <div id="settingsOk" class="auth-ok" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="products-data.js"></script>
+<script src="qm-shared.js"></script>
+<script>
+  if (!isAdmin()) window.location.href = 'login.html';
+
+  let uploadedImages = [];
+  let cachedProducts = [];
+
+  function showSection(name, btn) {
+    document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('sec-' + name).classList.add('active');
+    if (btn) { document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active')); btn.classList.add('active'); }
+    const loaders = { dashboard:'renderDashboard', products:'renderProductsTable', orders:'renderOrdersTable', users:'renderUsersTable', locations:'loadZones', settings:'loadSettings', addproduct:'resetForm' };
+    if (loaders[name]) window[loaders[name]]();
+  }
+
+  // ── DASHBOARD ──────────────────────────────────────────────
+  async function renderDashboard() {
+    document.getElementById('dashStats').innerHTML = '<div style="color:var(--muted);padding:20px">Loading from Google Sheets…</div>';
+    const [productsData, orders, users] = await Promise.all([getAllProducts(), getAllOrders(), getAllUsers()]);
+    cachedProducts = productsData;
+    const revenue = orders.reduce((a,o) => a + (o.total||0), 0);
+    document.getElementById('dashStats').innerHTML = `
+      <div class="stat-box"><div class="num">${productsData.length}</div><div class="lbl">Products</div></div>
+      <div class="stat-box"><div class="num">${orders.length}</div><div class="lbl">Orders</div></div>
+      <div class="stat-box"><div class="num">${users.length}</div><div class="lbl">Customers</div></div>
+      <div class="stat-box"><div class="num">₹${revenue.toLocaleString()}</div><div class="lbl">Revenue</div></div>`;
+    const recent = orders.slice(-5).reverse();
+    document.getElementById('recentOrders').innerHTML = recent.length ? recent.map(o => `
+      <div style="display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid var(--border);font-size:.85rem">
+        <div><strong>#${o.orderId}</strong> · ${o.name}<br><span style="color:var(--muted)">${o.time}</span></div>
+        <div style="text-align:right"><strong>₹${o.total?.toLocaleString()}</strong><br><span class="badge-order">${(o.payment||'').toUpperCase()}</span></div>
+      </div>`).join('') : '<p style="color:var(--muted);font-size:.85rem">No orders yet.</p>';
+  }
+
+  // ── PRODUCTS TABLE ─────────────────────────────────────────
+  async function renderProductsTable() {
+    document.getElementById('productsBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Loading from Google Sheets…</td></tr>';
+    cachedProducts = await getAllProducts();
+    document.getElementById('productsBody').innerHTML = cachedProducts.length ? cachedProducts.map(p => {
+      const hasImg = p.images && p.images.some(img => img && img.startsWith('data:'));
+      return `<tr>
+        <td style="color:var(--muted);font-size:.78rem">#${p.id}</td>
+        <td>${hasImg ? `<img src="${p.images.find(i=>i.startsWith('data:'))}" style="width:44px;height:44px;object-fit:cover;border-radius:8px">` : `<span style="font-size:1.6rem">${p.emoji||'📦'}</span>`}</td>
+        <td><strong>${p.name}</strong><br><span style="font-size:.75rem;color:var(--muted)">${p.brand}</span></td>
+        <td><span style="background:#f0f4ff;color:#4c6ef5;padding:3px 9px;border-radius:50px;font-size:.75rem;font-weight:700">${p.category}</span></td>
+        <td><strong>₹${p.price.toLocaleString()}</strong>${p.mrp>p.price?`<br><span style="text-decoration:line-through;color:var(--muted);font-size:.75rem">₹${p.mrp?.toLocaleString()}</span>`:''}</td>
+        <td>
+          <button class="btn-sm" onclick="editProduct(${p.id})">✏️ Edit</button>
+          <button class="btn-sm danger" onclick="deleteProductBtn(${p.id})" style="margin-left:4px">🗑 Delete</button>
+        </td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No products yet. Add one!</td></tr>';
+  }
+
+  // ── ADD / EDIT PRODUCT ─────────────────────────────────────
+  function resetForm() {
+    document.getElementById('formTitle').textContent = 'Add Product';
+    document.getElementById('fp-edit-id').value = '';
+    ['fp-name','fp-brand','fp-desc','fp-price','fp-mrp','fp-emoji','fp-delivery','fp-highlights','fp-colors'].forEach(id => document.getElementById(id).value = '');
+    uploadedImages = [];
+    document.getElementById('imgPreviewGrid').innerHTML = '';
+    document.getElementById('fp-err').style.display = 'none';
+    document.getElementById('fp-ok').style.display  = 'none';
+    document.getElementById('saveProductBtn').textContent = '💾 Save Product to Google Sheets';
+    document.getElementById('saveProductBtn').disabled = false;
+  }
+
+  async function editProduct(id) {
+    if (!cachedProducts.length) {
+      cachedProducts = await getAllProducts();
+    }
+    const p = cachedProducts.find(x => x.id == id);
+    if (!p) { alert('Error: Product not found'); return; }
+    showSection('addproduct', document.querySelectorAll('.sidebar-link')[2]);
+    document.getElementById('formTitle').textContent = 'Edit Product';
+    document.getElementById('fp-edit-id').value = id;
+    document.getElementById('fp-name').value      = p.name;
+    document.getElementById('fp-brand').value     = p.brand;
+    document.getElementById('fp-cat').value       = p.category;
+    document.getElementById('fp-price').value     = p.price;
+    document.getElementById('fp-mrp').value       = p.mrp || '';
+    document.getElementById('fp-emoji').value     = p.emoji || '';
+    document.getElementById('fp-desc').value      = p.desc;
+    document.getElementById('fp-delivery').value  = p.deliveryDays || 3;
+    document.getElementById('fp-highlights').value= (p.highlights||[]).join('\n');
+    document.getElementById('fp-colors').value    = (p.colors||[]).join(', ');
+    uploadedImages = (p.images||[]).filter(img => img && img.startsWith('data:'));
+    renderImagePreviews();
+  }
+
+  function previewImages(input) {
+    const files = Array.from(input.files);
+    let loaded = 0;
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        uploadedImages.push(e.target.result);
+        loaded++;
+        if (loaded === files.length) renderImagePreviews();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function renderImagePreviews() {
+    document.getElementById('imgPreviewGrid').innerHTML = uploadedImages.map((src, i) =>
+      `<div class="img-preview-item"><img src="${src}"><button class="remove-img" onclick="removeImg(${i})">✕</button></div>`).join('');
+  }
+
+  function removeImg(i) { uploadedImages.splice(i, 1); renderImagePreviews(); }
+
+  async function saveProductForm() {
+    const name     = document.getElementById('fp-name').value.trim();
+    const brand    = document.getElementById('fp-brand').value.trim();
+    const cat      = document.getElementById('fp-cat').value;
+    const price    = parseInt(document.getElementById('fp-price').value);
+    const mrp      = parseInt(document.getElementById('fp-mrp').value) || price;
+    const emoji    = document.getElementById('fp-emoji').value.trim() || '📦';
+    const desc     = document.getElementById('fp-desc').value.trim();
+    const delivery = parseInt(document.getElementById('fp-delivery').value) || 3;
+    const highlights = document.getElementById('fp-highlights').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const colors   = document.getElementById('fp-colors').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const editId   = document.getElementById('fp-edit-id').value;
+    const err = document.getElementById('fp-err'), ok = document.getElementById('fp-ok');
+
+    if (!name || !brand || !desc || !price) { err.textContent='⚠ Please fill Name, Brand, Description and Price.'; err.style.display='block'; return; }
+    err.style.display = 'none';
+
+    const btn = document.getElementById('saveProductBtn');
+    btn.disabled = true; btn.textContent = 'Saving to Google Sheets…';
+
+    const data = { name, brand, category: cat, price, mrp, emoji, desc, deliveryDays: delivery, highlights, colors, images: uploadedImages };
+    if (editId) data.id = parseInt(editId);
+
+    const res = await saveProductRemote(data);
+    btn.disabled = false; btn.textContent = '💾 Save Product to Google Sheets';
+
+    if (res.ok) {
+      ok.textContent = editId ? '✓ Product updated in Google Sheets!' : '✓ Product added to Google Sheets!';
+      ok.style.display = 'block';
+      clearProductCache();
+      setTimeout(() => { ok.style.display='none'; showSection('products', document.querySelectorAll('.sidebar-link')[1]); }, 1800);
+    } else {
+      err.textContent = '⚠ ' + (res.msg||'Error saving product'); err.style.display = 'block';
+    }
+  }
+
+  async function deleteProductBtn(id) {
+    if (!confirm('Delete this product from Google Sheets? Cannot be undone.')) return;
+    const res = await deleteProductRemote(id);
+    if (res.ok) renderProductsTable();
+    else alert('Error: ' + res.msg);
+  }
+
+  // ── ORDERS TABLE ───────────────────────────────────────────
+  async function renderOrdersTable() {
+    document.getElementById('ordersBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Loading from Google Sheets…</td></tr>';
+    const orders = await getAllOrders();
+    document.getElementById('ordersBody').innerHTML = orders.length ? orders.slice().reverse().map(o => `
+      <tr>
+        <td><strong>#${o.orderId}</strong></td>
+        <td>${o.name}<br><small style="color:var(--muted)">${o.phone}</small></td>
+        <td>${(o.cart||[]).map(i=>`${i.emoji||'📦'} ${i.name} ×${i.qty}`).join('<br>')}</td>
+        <td><strong>₹${(o.total||0).toLocaleString()}</strong></td>
+        <td><span class="badge-order">${(o.payment||'').toUpperCase()}</span></td>
+        <td><span style="background:#f0fff4;color:#276749;padding:3px 9px;border-radius:50px;font-size:.72rem;font-weight:700">${o.status||'Placed'}</span></td>
+        <td style="font-size:.78rem;color:var(--muted)">${o.time}</td>
+      </tr>`).join('') : '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">No orders yet.</td></tr>';
+  }
+
+  // ── USERS TABLE ────────────────────────────────────────────
+  async function renderUsersTable() {
+    document.getElementById('usersBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">Loading from Google Sheets…</td></tr>';
+    const users = await getAllUsers();
+    document.getElementById('usersBody').innerHTML = users.length ? users.map(u => `
+      <tr>
+        <td><strong>${u.name}</strong></td>
+        <td>${u.email}</td>
+        <td><span class="badge-role ${u.role==='admin'?'badge-admin':'badge-customer'}">${u.role}</span></td>
+        <td style="font-size:.78rem;color:var(--muted)">${u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('en-IN') : '—'}</td>
+        <td><button class="btn-sm danger" onclick="deleteUserBtn('${u.id}')">🗑 Remove</button></td>
+      </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted)">No registered users yet.</td></tr>';
+  }
+
+  async function deleteUserBtn(id) {
+    if (!confirm('Remove this user from Google Sheets?')) return;
+    await deleteUserRemote(id);
+    renderUsersTable();
+  }
+
+  // ── ZONES ──────────────────────────────────────────────────
+  async function loadZones() {
+    const zones = await getZones();
+    document.getElementById('zonesInput').value = zones.join('\n');
+  }
+
+  async function saveZonesForm() {
+    const zones = document.getElementById('zonesInput').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    const btn = document.getElementById('zonesBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    await saveZonesRemote(zones);
+    btn.disabled = false; btn.textContent = '💾 Save to Google Sheets';
+    const ok = document.getElementById('zonesOk');
+    ok.textContent = `✓ Saved ${zones.length} delivery zones to Google Sheets.`;
+    ok.style.display = 'block';
+    setTimeout(() => ok.style.display='none', 2500);
+  }
+
+  // ── SETTINGS ──────────────────────────────────────────────
+  async function loadSettings() {
+    const s = await getSettings();
+    document.getElementById('set-upi').value     = s.upi     || '';
+    document.getElementById('set-name').value    = s.name    || 'QuickMart';
+    document.getElementById('set-topbar').value  = s.topbar  || '';
+    document.getElementById('set-free-del').value= s.freeDel || 499;
+  }
+
+  async function saveSettingsForm() {
+    const btn = document.getElementById('settingsBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    await saveSettingsRemote({
+      upi    : document.getElementById('set-upi').value.trim(),
+      name   : document.getElementById('set-name').value.trim(),
+      topbar : document.getElementById('set-topbar').value.trim(),
+      freeDel: document.getElementById('set-free-del').value
+    });
+    btn.disabled = false; btn.textContent = '💾 Save to Google Sheets';
+    const ok = document.getElementById('settingsOk');
+    ok.textContent = '✓ Settings saved to Google Sheets!';
+    ok.style.display = 'block';
+    setTimeout(() => ok.style.display='none', 2000);
+  }
+
+  initNav(); updateBadge(); renderDashboard();
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Register — QuickMart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Submit button enhancements ── */
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      background: var(--primary, #6c63ff);
+      color: #fff;
+      transition: opacity .18s, transform .12s;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: .3px;
+    }
+    .btn-submit:hover:not(:disabled)  { opacity: .9; transform: translateY(-1px); }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled {
+      opacity: .65;
+      cursor: not-allowed;
+    }
+    .btn-submit .spinner {
+      width: 16px; height: 16px;
+      border: 2.5px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    .btn-submit.loading .spinner { display: inline-block; }
+    .btn-submit.loading .btn-label { opacity: .7; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Google Sheets status banner ── */
+    .gs-status {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #f0f4ff;
+      border: 1px solid #c7d5ff;
+      border-radius: 8px;
+      padding: 9px 13px;
+      font-size: .82rem;
+      color: #3a5bcc;
+      margin-bottom: 14px;
+    }
+    .gs-status.visible { display: flex; }
+    .gs-status .gs-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #3a5bcc;
+      animation: pulse 1.2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .4; transform: scale(.75); }
+    }
+    .gs-status.success { background:#f0fff4; border-color:#9ae6b4; color:#276749; }
+    .gs-status.success .gs-dot { background:#276749; animation:none; }
+
+    /* ── Divider ── */
+    .auth-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 18px 0; color: var(--muted, #aaa); font-size: .8rem;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border, #e2e8f0);
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">🎉 Free delivery on orders above ₹499 — <span>Use code FIRST10 for 10% off your first order</span></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">⚡ Quick<span class="logo-dot">Mart</span></a>
+    <div class="nav-search">
+      <input type="text" placeholder="Search products, brands..." id="navSearch">
+      <button onclick="navSearchGo()">🔍</button>
+    </div>
+    <div class="nav-actions" id="nav-actions">
+      <a href="products.html" class="nav-btn">🛍 Products</a>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart <span class="badge" id="nav-count">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <h1>Welcome to QuickMart ⚡</h1>
+    <p class="sub">Sign in to track orders, write reviews and more</p>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchTab('login')">Login</div>
+      <div class="auth-tab"        onclick="switchTab('register')">Register</div>
+    </div>
+
+    <!-- ── LOGIN FORM ─────────────────────────────────── -->
+    <div id="loginForm">
+      <div class="gs-status" id="loginGsStatus">
+        <span class="gs-dot"></span>
+        <span id="loginGsMsg">Connecting to Google Sheets…</span>
+      </div>
+      <div class="auth-err" id="loginErr"></div>
+
+      <form id="loginFormEl" onsubmit="handleLoginSubmit(event)" novalidate>
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@email.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPass">Password</label>
+          <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+
+        <button type="submit" class="btn-submit" id="loginBtn">
+          <span class="spinner"></span>
+          <span class="btn-label">Login →</span>
+        </button>
+      </form>
+
+      <div class="auth-divider">or</div>
+      <p style="text-align:center;font-size:.84rem;color:var(--muted)">
+        Don't have an account?
+        <a href="#" onclick="switchTab('register');return false" style="color:var(--primary);font-weight:700">Register here</a>
+      </p>
+    </div>
+
+    <!-- ── REGISTER FORM ──────────────────────────────── -->
+    <div id="registerForm" style="display:none">
+      <div class="gs-status" id="regGsStatus">
+        <span class="gs-dot"></span>
+        <span id="regGsMsg">Connecting to Google Sheets…</span>
+      </div>
+      <div class="auth-err" id="regErr"></div>
+      <div class="auth-ok"  id="regOk"></div>
+
+      <form id="registerFormEl" onsubmit="handleRegisterSubmit(event)" novalidate>
+        <div class="form-group">
+          <label for="regName">Full Name</label>
+          <input type="text" id="regName" placeholder="Rahul Sharma" autocomplete="name" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" placeholder="you@email.com" autocomplete="email" required>
+        </div>
+        <div class="form-group">
+          <label for="regPass">Password</label>
+          <input type="password" id="regPass" placeholder="Min 6 characters" autocomplete="new-password" required minlength="6">
+        </div>
+
+        <button type="submit" class="btn-submit" id="regBtn">
+          <span class="spinner"></span>
+          <span class="btn-label">Create Account →</span>
+        </button>
+      </form>
+
+      <div class="auth-divider">or</div>
+      <p style="text-align:center;font-size:.84rem;color:var(--muted)">
+        Already have an account?
+        <a href="#" onclick="switchTab('login');return false" style="color:var(--primary);font-weight:700">Login here</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script src="products-data.js"></script>
+<script src="qm-shared.js"></script>
+<script>
+  // ── Redirect if already logged in ───────────────────────────
+  if (isLoggedIn()) window.location.href = 'index.html';
+  if (new URLSearchParams(window.location.search).get('tab') === 'register') switchTab('register');
+
+  // ── Tab switching ────────────────────────────────────────────
+  function switchTab(tab) {
+    document.getElementById('loginForm').style.display    = tab === 'login'    ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    document.querySelectorAll('.auth-tab').forEach((t, i) =>
+      t.classList.toggle('active', (tab==='login' && i===0) || (tab==='register' && i===1))
+    );
+    // Hide stale banners when switching
+    hideGsStatus('loginGsStatus');
+    hideGsStatus('regGsStatus');
+  }
+
+  // ── Google Sheets status helpers ─────────────────────────────
+  function showGsStatus(id, msg, isSuccess) {
+    const el  = document.getElementById(id);
+    const msg_el = el.querySelector('[id$="GsMsg"]') || el.querySelector('span:last-child');
+    msg_el.textContent = msg;
+    el.classList.remove('success');
+    if (isSuccess) el.classList.add('success');
+    el.classList.add('visible');
+  }
+  function hideGsStatus(id) {
+    document.getElementById(id).classList.remove('visible', 'success');
+  }
+
+  // ── Button loading state ─────────────────────────────────────
+  function setBtnLoading(btnId, loading, label) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    btn.classList.toggle('loading', loading);
+    if (!loading && label) btn.querySelector('.btn-label').textContent = label;
+  }
+
+  // ── Show / hide error ────────────────────────────────────────
+  function showErr(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = '⚠ ' + msg;
+    el.style.display = 'block';
+  }
+  function hideErr(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  // ── LOGIN ────────────────────────────────────────────────────
+  async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass  = document.getElementById('loginPass').value;
+
+    hideErr('loginErr');
+    if (!email || !pass) { showErr('loginErr', 'Please fill in all fields.'); return; }
+
+    setBtnLoading('loginBtn', true);
+    showGsStatus('loginGsStatus', 'Fetching data from Google Sheets…');
+
+    const res = await loginUser(email, pass);
+
+    setBtnLoading('loginBtn', false, 'Login →');
+
+    if (!res.ok) {
+      hideGsStatus('loginGsStatus');
+      showErr('loginErr', res.msg);
+      return;
+    }
+
+    showGsStatus('loginGsStatus', '✓ Logged in! Redirecting…', true);
+    const redirect = new URLSearchParams(window.location.search).get('redirect') || 'index.html';
+    setTimeout(() => {
+      window.location.href = res.user.role === 'admin' ? 'admin.html' : redirect;
+    }, 600);
+  }
+
+  // ── REGISTER ─────────────────────────────────────────────────
+  async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    const name  = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const pass  = document.getElementById('regPass').value;
+
+    hideErr('regErr');
+    document.getElementById('regOk').style.display = 'none';
+
+    if (!name || !email || !pass) { showErr('regErr', 'Please fill in all fields.'); return; }
+    if (pass.length < 6)          { showErr('regErr', 'Password must be at least 6 characters.'); return; }
+
+    setBtnLoading('regBtn', true);
+    showGsStatus('regGsStatus', 'Saving your account to Google Sheets…');
+
+    const res = await registerUser(name, email, pass);
+
+    setBtnLoading('regBtn', false, 'Create Account →');
+
+    if (!res.ok) {
+      hideGsStatus('regGsStatus');
+      showErr('regErr', res.msg);
+      return;
+    }
+
+    showGsStatus('regGsStatus', '✓ Account saved to Google Sheets!', true);
+    const ok = document.getElementById('regOk');
+    ok.textContent = '✓ Account created! Redirecting…';
+    ok.style.display = 'block';
+    setTimeout(() => window.location.href = 'index.html', 1400);
+  }
+
+  initNav();
+  updateBadge();
+</script>
+</body>
+</html>

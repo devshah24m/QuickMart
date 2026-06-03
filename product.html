@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product — QuickMart</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">🎉 Free delivery on orders above ₹499 — <span>Use code FIRST10 for 10% off your first order</span></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">⚡ Quick<span class="logo-dot">Mart</span></a>
+    <div class="nav-search">
+      <input type="text" placeholder="Search products, brands..." id="navSearch">
+      <button onclick="navSearchGo()">🔍</button>
+    </div>
+    <div class="nav-actions" id="nav-actions">
+      <a href="products.html" class="nav-btn">🛍 Products</a>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart <span class="badge" id="nav-count">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div style="background:#fff;border-bottom:1px solid var(--border);">
+  <div class="cat-nav-inner" style="max-width:1200px;margin:0 auto;padding:0 24px;">
+    <a href="products.html?cat=electronics" class="cat-nav-link">📱 Electronics</a>
+    <a href="products.html?cat=fashion" class="cat-nav-link">👕 Fashion</a>
+    <a href="products.html?cat=home" class="cat-nav-link">🏠 Home</a>
+    <a href="products.html?cat=beauty" class="cat-nav-link">💄 Beauty</a>
+    <a href="products.html?cat=sports" class="cat-nav-link">⚽ Sports</a>
+    <a href="products.html?cat=books" class="cat-nav-link">📚 Books</a>
+  </div>
+</div>
+
+<div class="product-detail">
+
+  <div class="breadcrumb" id="breadcrumb">
+    <a href="index.html">Home</a><span>›</span>
+    <a href="products.html">Products</a><span>›</span>
+    <span id="bc-cat">Category</span><span>›</span>
+    <span id="bc-name" style="color:var(--text);font-weight:500;">Product</span>
+  </div>
+
+  <div class="pd-layout">
+    <!-- Gallery -->
+    <div class="pd-gallery" id="gallery">
+      <div class="gallery-thumbs" id="thumbs"></div>
+      <div class="main-img" id="mainImg">
+        <span id="mainEmoji" style="font-size:8rem;"></span>
+        <img id="mainImgReal" class="pd-real-img" style="display:none">
+        <div class="discount-badge" id="discBadge" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="pd-info" id="pdInfo">
+      <div class="pd-brand" id="pdBrand"></div>
+      <h1 class="pd-name" id="pdName"></h1>
+      <div class="pd-rating-row">
+        <div class="pd-stars" id="pdStars"></div>
+        <span class="pd-rating-num" id="pdRating"></span>
+        <span class="pd-review-count" id="pdReviewCount"></span>
+        <span class="verified-tag">✓ Verified Reviews</span>
+      </div>
+      <div class="pd-price-block">
+        <div class="pd-price-row">
+          <span class="pd-price" id="pdPrice"></span>
+          <span class="pd-mrp" id="pdMrp"></span>
+          <span class="pd-discount" id="pdDisc"></span>
+        </div>
+        <div class="pd-save" id="pdSave"></div>
+      </div>
+      <div class="pd-highlights"><h4>Key Highlights</h4><ul id="pdHighlights"></ul></div>
+      <div class="pd-colors"><h4>Available In</h4><div class="color-pills" id="pdColors"></div></div>
+    </div>
+
+    <!-- Buy Box -->
+    <div class="pd-buy-box">
+      <div class="buy-price" id="bbPrice"></div>
+      <div class="buy-save" id="bbSave"></div>
+      <div class="delivery-info">
+        <div class="di-row">
+          <span class="di-icon">🚚</span>
+          <div class="di-content">
+            <div class="di-label">Delivery</div>
+            <div class="di-value" id="diDelivery"></div>
+            <div class="di-note">Free delivery on this order</div>
+          </div>
+        </div>
+        <div class="di-row">
+          <span class="di-icon">📍</span>
+          <div class="di-content">
+            <div class="di-label">Your Location</div>
+            <div class="di-value" id="diLocation">Detecting…</div>
+          </div>
+        </div>
+        <div class="di-row">
+          <span class="di-icon">↩️</span>
+          <div class="di-content">
+            <div class="di-label">Returns</div>
+            <div class="di-value">7-day easy return</div>
+            <div class="di-note">No questions asked</div>
+          </div>
+        </div>
+      </div>
+      <div id="locationWarning"></div>
+      <div class="qty-row">
+        <span class="qty-label">Qty:</span>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <span class="qty-num" id="qtyNum">1</span>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      <div class="buy-btns">
+        <button class="btn-primary large" id="addCartBtn" onclick="addToCartFromDetail()">🛒 Add to Cart</button>
+        <button class="btn-secondary" onclick="buyNow()">⚡ Buy Now</button>
+      </div>
+      <div class="secure-tag">🔒 Safe & Secure UPI Payment</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="pd-tabs-section">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(this,'tab-desc')">Description</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-specs')">Specifications</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-reviews')" id="reviewTabBtn">Customer Reviews</button>
+    </div>
+
+    <div id="tab-desc" class="tab-content active">
+      <p id="tabDescText" style="font-size:.95rem;color:var(--muted);line-height:1.8;max-width:700px;"></p>
+    </div>
+    <div id="tab-specs" class="tab-content">
+      <table class="specs-table" id="specsTable"></table>
+    </div>
+    <div id="tab-reviews" class="tab-content">
+      <div class="reviews-summary">
+        <div class="rating-big">
+          <div class="num" id="ratingBig"></div>
+          <div class="stars" id="ratingBigStars"></div>
+          <div class="count" id="ratingBigCount"></div>
+        </div>
+        <div class="rating-bars" id="ratingBars"></div>
+      </div>
+
+      <!-- Write a review -->
+      <div class="review-write" id="reviewWriteBox">
+        <h3>Write a Review</h3>
+        <div id="reviewLoginPrompt" style="display:none">
+          <p style="color:var(--muted);font-size:.88rem">
+            <a href="login.html" style="color:var(--primary);font-weight:700">Login</a> to write a review
+          </p>
+        </div>
+        <div id="reviewForm">
+          <div class="star-picker" id="starPicker">
+            <span onclick="setRating(1)">★</span>
+            <span onclick="setRating(2)">★</span>
+            <span onclick="setRating(3)">★</span>
+            <span onclick="setRating(4)">★</span>
+            <span onclick="setRating(5)">★</span>
+          </div>
+          <div class="form-group"><label>Review Title</label><input type="text" id="rvTitle" placeholder="e.g. Excellent product!"></div>
+          <div class="form-group"><label>Your Review</label><textarea id="rvBody" rows="3" placeholder="Share your experience with this product…"></textarea></div>
+          <div id="rvErr" class="auth-err"></div>
+          <button class="btn-full" style="max-width:200px" onclick="submitReview()">Submit Review</button>
+        </div>
+      </div>
+
+      <div id="reviewsList"></div>
+    </div>
+  </div>
+
+  <!-- Related -->
+  <div style="margin-top:40px;">
+    <div class="section-head" style="margin-bottom:16px;">
+      <div class="section-title">Similar Products</div>
+      <a href="products.html" class="section-link">View All →</a>
+    </div>
+    <div class="product-grid" id="relatedGrid"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"><span class="toast-emoji">✓</span> Added to cart!</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo">⚡ Quick<span style="color:#fff">Mart</span></div>
+      <p>Your trusted one-stop shop for electronics, fashion, home goods, and more.</p>
+    </div>
+    <div class="footer-col"><h4>Shop</h4><a href="products.html?cat=electronics">Electronics</a><a href="products.html?cat=fashion">Fashion</a><a href="products.html?cat=home">Home & Living</a><a href="products.html?cat=beauty">Beauty</a></div>
+    <div class="footer-col"><h4>Help</h4><a href="#">Track Order</a><a href="#">Returns & Refunds</a><a href="#">Contact Us</a><a href="#">FAQs</a></div>
+    <div class="footer-col"><h4>Pay Securely</h4><a href="#">UPI / GPay</a><a href="#">PhonePe</a><a href="#">Credit/Debit Card</a></div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 QuickMart · All rights reserved · Made with ❤️ in India</p>
+    <p>Privacy Policy · Terms of Service</p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var s = JSON.parse(localStorage.getItem('qm_settings')||'{}');
+    if(s.topbar){ var tb = document.querySelector('.topbar'); if(tb) tb.innerHTML = s.topbar; }
+  })();
+</script>
+<script src="products-data.js"></script>
+<script src="qm-shared.js"></script>
+<script>
+  const params  = new URLSearchParams(window.location.search);
+  const pid     = parseInt(params.get('id'));
+  let p         = null;
+  let qty       = 1;
+  let selectedRating = 0;
+
+  function changeQty(d) { qty = Math.max(1, qty+d); document.getElementById('qtyNum').textContent = qty; }
+
+  function switchTab(btn, id) {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active'); document.getElementById(id).classList.add('active');
+  }
+
+  function addToCartFromDetail() {
+    if (!p) return;
+    let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+    const ex = cart.find(i=>i.id==pid);
+    if (ex) ex.qty+=qty; else cart.push({...p, qty});
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateBadge();
+    const t=document.getElementById('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500);
+  }
+  function buyNow() { addToCartFromDetail(); window.location.href='cart.html'; }
+
+  function discountPct(p) { if(!p.mrp||p.mrp<=p.price)return 0; return Math.round((p.mrp-p.price)/p.mrp*100); }
+
+  function setRating(n) {
+    selectedRating=n;
+    document.querySelectorAll('#starPicker span').forEach((s,i)=>s.classList.toggle('active',i<n));
+  }
+
+  function renderReviewsList(reviews) {
+    document.getElementById('reviewsList').innerHTML = reviews.length ? reviews.map(r=>{
+      const initials=(r.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      return `<div class="review-card">
+        <div class="rc-header">
+          <div class="rc-avatar">${initials}</div>
+          <div><div class="rc-name">${r.name} ${r.verified?'<span class="verified-check">✓ Verified</span>':''}</div><div class="rc-date">${r.date}</div></div>
+          <div class="rc-stars" style="margin-left:auto">${'★'.repeat(Math.round(r.rating))}${'☆'.repeat(5-Math.round(r.rating))}</div>
+        </div>
+        <div class="rc-title">${r.title}</div>
+        <div class="rc-body">${r.body}</div>
+      </div>`;
+    }).join('') : '<p style="color:var(--muted);font-size:.88rem">No reviews yet. Be the first!</p>';
+  }
+
+  async function submitReview() {
+    const title=document.getElementById('rvTitle').value.trim();
+    const body =document.getElementById('rvBody').value.trim();
+    const err  =document.getElementById('rvErr');
+    if (!selectedRating){err.textContent='⚠ Please select a star rating.';err.style.display='block';return;}
+    if (!title||!body){err.textContent='⚠ Please fill in title and review.';err.style.display='block';return;}
+    err.style.display='none';
+    const user=currentUser();
+    const review={productId:pid, userId:user.id, name:user.name, rating:selectedRating, title, body, date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}), verified:true};
+    const res = await saveReview(review);
+    if (!res.ok){err.textContent='⚠ '+(res.msg||'Error saving review.');err.style.display='block';return;}
+    document.getElementById('rvTitle').value=''; document.getElementById('rvBody').value='';
+    selectedRating=0; document.querySelectorAll('#starPicker span').forEach(s=>s.classList.remove('active'));
+    // Reload reviews
+    const revData = await getReviews(pid);
+    renderReviewsList(revData);
+    document.getElementById('reviewsList').scrollIntoView({behavior:'smooth'});
+  }
+  window.submitReview = submitReview;
+
+  async function init() {
+    // Apply settings
+    try { const s=await getSettings(); if(s.topbar){document.querySelector('.topbar').innerHTML=s.topbar;} } catch(e){}
+
+    const products = await getAllProducts();
+    p = products.find(x=>x.id===pid);
+
+    if (!p) {
+      document.querySelector('.product-detail').innerHTML='<p style="padding:60px;text-align:center;color:var(--muted)">Product not found. <a href="products.html">Browse Products →</a></p>';
+      return;
+    }
+
+    document.title = p.name + ' — QuickMart';
+    document.getElementById('bc-cat').textContent  = p.category.charAt(0).toUpperCase()+p.category.slice(1);
+    document.getElementById('bc-name').textContent = p.name;
+    document.getElementById('pdBrand').textContent = p.brand;
+    document.getElementById('pdName').textContent  = p.name;
+
+    // Gallery
+    const hasRealImgs = p.images && p.images.some(img=>img&&img.startsWith('data:'));
+    const thumbsEl=document.getElementById('thumbs'), mainEmoji=document.getElementById('mainEmoji'), mainReal=document.getElementById('mainImgReal');
+    if (hasRealImgs) {
+      const realImgs=p.images.filter(img=>img&&img.startsWith('data:'));
+      mainEmoji.style.display='none'; mainReal.style.display='block'; mainReal.src=realImgs[0];
+      thumbsEl.innerHTML=realImgs.map((src,i)=>`<div class="thumb ${i===0?'active':''}" onclick="setMainImg('${src}',this)"><img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:6px"></div>`).join('');
+    } else {
+      mainEmoji.textContent=p.emoji||'📦';
+      thumbsEl.innerHTML=`<div class="thumb active">${p.emoji||'📦'}</div>`;
+    }
+    window.setMainImg=(src,thumb)=>{document.getElementById('mainImgReal').src=src;document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));thumb.classList.add('active');};
+
+    const disc=discountPct(p);
+    if(disc>0){document.getElementById('discBadge').textContent=disc+'% OFF';document.getElementById('discBadge').style.display='block';}
+
+    // Fetch user reviews from Google Sheets
+    const userRevs = await getReviews(pid);
+    const allRevs  = [...(p.reviews||[]), ...userRevs];
+    const totalRvs = (p.reviewCount||0) + userRevs.length;
+    const avgRating= allRevs.length?(allRevs.reduce((a,r)=>a+Number(r.rating),0)/allRevs.length).toFixed(1):p.rating;
+
+    document.getElementById('pdStars').innerHTML      =starsHTML(avgRating);
+    document.getElementById('pdRating').textContent   =avgRating;
+    document.getElementById('pdReviewCount').textContent=`(${totalRvs.toLocaleString()} reviews)`;
+    document.getElementById('reviewTabBtn').textContent=`Customer Reviews (${totalRvs.toLocaleString()})`;
+    document.getElementById('pdPrice').textContent    ='₹'+p.price.toLocaleString();
+    if(disc>0){
+      document.getElementById('pdMrp').textContent  ='₹'+p.mrp.toLocaleString();
+      document.getElementById('pdDisc').textContent =disc+'% off';
+      document.getElementById('pdSave').textContent ='You save ₹'+(p.mrp-p.price).toLocaleString();
+      document.getElementById('bbSave').textContent ='You save ₹'+(p.mrp-p.price).toLocaleString();
+    }
+    document.getElementById('bbPrice').textContent='₹'+p.price.toLocaleString();
+    document.getElementById('pdHighlights').innerHTML=(p.highlights||[]).map(h=>`<li>${h}</li>`).join('');
+    document.getElementById('pdColors').innerHTML=(p.colors||[]).map(c=>`<span class="color-pill">${c}</span>`).join('');
+
+    const delDate=new Date(); delDate.setDate(delDate.getDate()+(p.deliveryDays||3));
+    document.getElementById('diDelivery').innerHTML=`Get it by <strong>${delDate.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</strong>`;
+    document.getElementById('tabDescText').textContent=p.desc+((p.highlights&&p.highlights.length)?'
+
+'+p.highlights.join(' · '):'');
+    document.getElementById('specsTable').innerHTML=Object.entries(p.specs||{}).map(([k,v])=>`<tr><td style="color:var(--muted);padding:10px 0;font-size:.88rem;width:45%;border-top:1px solid var(--border)">${k}</td><td style="font-weight:600;font-size:.88rem;padding:10px 0;border-top:1px solid var(--border)">${v}</td></tr>`).join('');
+
+    // Reviews summary
+    document.getElementById('ratingBig').textContent     =avgRating;
+    document.getElementById('ratingBigStars').innerHTML  =starsHTML(avgRating);
+    document.getElementById('ratingBigCount').textContent=totalRvs.toLocaleString()+' reviews';
+    document.getElementById('ratingBars').innerHTML=[5,4,3,2,1].map(star=>{
+      const cnt=allRevs.filter(r=>Math.round(r.rating)===star).length;
+      const pct=totalRvs?Math.round(cnt/totalRvs*100):0;
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:.82rem"><span style="width:16px;text-align:right">${star}</span><span style="color:#f59e0b">★</span><div style="flex:1;background:#f0f0f0;border-radius:4px;height:8px"><div style="width:${pct}%;background:#f59e0b;height:8px;border-radius:4px"></div></div><span style="width:28px;color:var(--muted)">${pct}%</span></div>`;
+    }).join('');
+
+    renderReviewsList(allRevs);
+
+    // Review form auth check
+    if (!isLoggedIn()) {
+      document.getElementById('reviewForm').style.display='none';
+      document.getElementById('reviewLoginPrompt').style.display='block';
+    }
+
+    // Related products
+    const related=products.filter(x=>x.category===p.category&&x.id!==p.id).slice(0,4);
+    document.getElementById('relatedGrid').innerHTML=related.map(r=>{
+      const d=discountPct(r);
+      const hasImg=r.images&&r.images.some(img=>img&&img.startsWith('data:'));
+      return `<a href="product.html?id=${r.id}" class="product-card">
+        <div class="product-img">${d>0?`<div class="discount-badge">${d}% OFF</div>`:''}<span class="brand-badge">${r.brand}</span>${hasImg?`<img src="${r.images.find(img=>img.startsWith('data:'))}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">`:r.emoji||'📦'}</div>
+        <div class="product-body"><div class="product-brand">${r.brand}</div><h3>${r.name}</h3><p class="product-desc">${r.desc}</p><div class="price-row"><span class="price">₹${r.price.toLocaleString()}</span>${d>0?`<span class="mrp">₹${r.mrp.toLocaleString()}</span>`:''}</div><button class="btn-add" onclick="event.preventDefault();addToCart(${r.id},this,window._products)">Add to Cart</button></div>
+      </a>`;
+    }).join('');
+    window._products = products;
+
+    // Location check from Google Sheets zones
+    const zones = await getZones();
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async pos=>{
+        const {latitude:lat,longitude:lon}=pos.coords;
+        try {
+          const data=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`).then(r=>r.json());
+          const city=data.address.city||data.address.town||data.address.village||'Unknown';
+          document.getElementById('diLocation').textContent=city+(data.address.state?', '+data.address.state:'');
+          const ok=zones.some(z=>city.toLowerCase().includes(z.toLowerCase())||z.toLowerCase().includes(city.toLowerCase()));
+          document.getElementById('locationWarning').innerHTML=ok
+            ?`<div class="loc-banner ok">✓ We deliver to <strong>${city}</strong>!</div>`
+            :`<div class="loc-banner denied">⚠ Sorry, we don't deliver to <strong>${city}</strong> yet.</div>`;
+          if (!ok){const btn=document.getElementById('addCartBtn');btn.disabled=true;btn.style.opacity='.5';}
+        } catch(e){ document.getElementById('diLocation').textContent='Location detected'; }
+      }, ()=>{
+        document.getElementById('diLocation').textContent='Access denied';
+        document.getElementById('locationWarning').innerHTML=`<div class="loc-banner" style="background:#fffbeb;border-color:#fde68a;color:#92400e">📍 Allow location to check delivery availability.</div>`;
+      });
+    }
+  }
+
+  initNav(); updateBadge(); init();
+</script>
+</body>
+</html>

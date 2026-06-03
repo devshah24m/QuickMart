@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuickMart — Shop Smart, Delivered Fast</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">🎉 Free delivery on orders above ₹499 — <span>Use code FIRST10 for 10% off your first order</span></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">⚡ Quick<span class="logo-dot">Mart</span></a>
+    <div class="nav-search">
+      <input type="text" placeholder="Search products, brands..." id="navSearch">
+      <button onclick="navSearchGo()">🔍</button>
+    </div>
+    <div class="nav-actions" id="nav-actions">
+      <a href="products.html" class="nav-btn">🛍 Products</a>
+      <a href="cart.html" class="nav-btn cart">🛒 Cart <span class="badge" id="nav-count">0</span></a>
+    </div>
+  </div>
+</nav>
+
+<div class="cat-nav">
+  <div class="cat-nav-inner">
+    <a href="products.html?cat=electronics" class="cat-nav-link">📱 Electronics</a>
+    <a href="products.html?cat=fashion" class="cat-nav-link">👕 Fashion</a>
+    <a href="products.html?cat=home" class="cat-nav-link">🏠 Home</a>
+    <a href="products.html?cat=beauty" class="cat-nav-link">💄 Beauty</a>
+    <a href="products.html?cat=sports" class="cat-nav-link">⚽ Sports</a>
+    <a href="products.html?cat=books" class="cat-nav-link">📚 Books</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-tag">🔥 Best Deals Today</div>
+      <h1>Shop <em>Everything</em><br>You Love</h1>
+      <p>Fast delivery across India. Secure UPI payments. Easy 7-day returns. Everything in one place — delivered to your door.</p>
+      <div class="hero-btns">
+        <a href="products.html" class="btn-primary">Browse Products →</a>
+        <a href="products.html?cat=electronics" class="btn-ghost">Electronics 📱</a>
+      </div>
+    </div>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="num">500+</div><div class="lbl">Products Available</div></div>
+      <div class="stat-card"><div class="num">2–5 Days</div><div class="lbl">Delivery Time</div></div>
+      <div class="stat-card"><div class="num">UPI</div><div class="lbl">Secure Payments</div></div>
+      <div class="stat-card"><div class="num">7 Days</div><div class="lbl">Easy Returns</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item"><div class="trust-icon">🚚</div><div><h4>Fast Delivery</h4><p>Orders delivered in 2–5 business days across India</p></div></div>
+    <div class="trust-item"><div class="trust-icon">🔒</div><div><h4>Secure Payments</h4><p>UPI, GPay, PhonePe — safe and instant</p></div></div>
+    <div class="trust-item"><div class="trust-icon">↩️</div><div><h4>Easy Returns</h4><p>7-day hassle-free return policy</p></div></div>
+    <div class="trust-item"><div class="trust-icon">💬</div><div><h4>24/7 Support</h4><p>We're always here to help you</p></div></div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<section class="section">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Shop by Category</div>
+      <div class="section-sub">Discover our wide range of products</div>
+    </div>
+  </div>
+  <div class="cat-strip">
+    <a href="products.html?cat=electronics" class="cat-strip-card"><span class="icon">📱</span><span class="name">Electronics</span></a>
+    <a href="products.html?cat=fashion" class="cat-strip-card"><span class="icon">👕</span><span class="name">Fashion</span></a>
+    <a href="products.html?cat=home" class="cat-strip-card"><span class="icon">🏠</span><span class="name">Home</span></a>
+    <a href="products.html?cat=beauty" class="cat-strip-card"><span class="icon">💄</span><span class="name">Beauty</span></a>
+    <a href="products.html?cat=sports" class="cat-strip-card"><span class="icon">⚽</span><span class="name">Sports</span></a>
+    <a href="products.html?cat=books" class="cat-strip-card"><span class="icon">📚</span><span class="name">Books</span></a>
+  </div>
+</section>
+
+<!-- FEATURED -->
+<section class="section" style="padding-top:0">
+  <div class="section-head">
+    <div>
+      <div class="section-title">🔥 Today's Top Deals</div>
+      <div class="section-sub">Hand-picked deals with the best discounts</div>
+    </div>
+    <a href="products.html" class="section-link">View all products →</a>
+  </div>
+  <div class="product-grid" id="featuredGrid"></div>
+</section>
+
+<!-- TRENDING -->
+<section class="section" style="padding-top:0">
+  <div class="section-head">
+    <div>
+      <div class="section-title">⭐ Highest Rated</div>
+      <div class="section-sub">Products loved by our customers</div>
+    </div>
+    <a href="products.html" class="section-link">See all →</a>
+  </div>
+  <div class="product-grid" id="topRatedGrid"></div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo">⚡ Quick<span style="color:#fff">Mart</span></div>
+      <p>Your trusted one-stop shop for electronics, fashion, home goods, and more. Delivered fast across India.</p>
+    </div>
+    <div class="footer-col"><h4>Shop</h4><a href="products.html?cat=electronics">Electronics</a><a href="products.html?cat=fashion">Fashion</a><a href="products.html?cat=home">Home & Living</a><a href="products.html?cat=beauty">Beauty</a></div>
+    <div class="footer-col"><h4>Help</h4><a href="#">Track Order</a><a href="#">Returns & Refunds</a><a href="#">Contact Us</a><a href="#">FAQs</a></div>
+    <div class="footer-col"><h4>Pay Securely</h4><a href="#">UPI / GPay</a><a href="#">PhonePe</a><a href="#">Credit/Debit Card</a></div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 QuickMart · All rights reserved · Made with ❤️ in India</p>
+    <p>Privacy Policy · Terms of Service</p>
+  </div>
+</footer>
+
+<script src="products-data.js"></script>
+<script>
+  // Apply site settings
+  (function(){
+    const s = JSON.parse(localStorage.getItem('qm_settings')||'{}');
+    if(s.topbar) document.querySelector('.topbar').innerHTML = s.topbar;
+  })();
+</script>
+<script src="qm-shared.js"></script>
+<script>
+  function starsHTML(n) {
+    n = parseFloat(n)||0;
+    const full = Math.floor(n), half = n % 1 >= 0.5;
+    let s = '';
+    for (let i = 0; i < full; i++) s += '★';
+    if (half) s += '½';
+    for (let i = 0; i < (5-full-(half?1:0)); i++) s += '☆';
+    return s;
+  }
+  function discountPct(p) {
+    if (!p.mrp || p.mrp <= p.price) return 0;
+    return Math.round((p.mrp - p.price) / p.mrp * 100);
+  }
+  function productCardHTML(p) {
+    const disc = discountPct(p);
+    const hasImg = p.images && p.images.some(img => img && img.startsWith('data:'));
+    const imgHTML = hasImg ? `<img src="${p.images.find(img=>img.startsWith('data:'))}" style="width:100%;height:100%;object-fit:cover;border-radius:12px">` : (p.emoji||'📦');
+    return `<a href="product.html?id=${p.id}" class="product-card">
+      <div class="product-img">
+        ${disc > 0 ? `<div class="discount-badge">${disc}% OFF</div>` : ''}
+        <span class="brand-badge">${p.brand}</span>
+        ${imgHTML}
+      </div>
+      <div class="product-body">
+        <div class="product-brand">${p.brand}</div>
+        <h3>${p.name}</h3>
+        <p class="product-desc">${p.desc}</p>
+        <div class="rating-row">
+          <span class="stars">${starsHTML(p.rating)}</span>
+          <span class="rating-num">${p.rating}</span>
+          <span class="rating-count">(${(p.reviewCount||0).toLocaleString()})</span>
+        </div>
+        <div class="price-row">
+          <span class="price">₹${p.price.toLocaleString()}</span>
+          ${disc > 0 ? `<span class="mrp">₹${p.mrp.toLocaleString()}</span><span class="you-save">${disc}% off</span>` : ''}
+        </div>
+        <button class="btn-add" onclick="event.preventDefault();addToCart(${p.id},this,window._products)">Add to Cart</button>
+      </div>
+    </a>`;
+  }
+
+  async function loadHomePage() {
+    // Apply settings
+    try {
+      const s = await getSettings();
+      if (s.topbar) document.querySelector('.topbar').innerHTML = s.topbar;
+    } catch(e) {}
+
+    const products = await getAllProducts();
+    window._products = products;
+
+    const featured = [...products].sort((a,b) => discountPct(b)-discountPct(a)).slice(0,4);
+    document.getElementById('featuredGrid').innerHTML = featured.map(productCardHTML).join('') || '<p style="color:var(--muted)">No products yet.</p>';
+
+    const topRated = [...products].sort((a,b) => b.rating-a.rating).slice(0,4);
+    document.getElementById('topRatedGrid').innerHTML = topRated.map(productCardHTML).join('') || '<p style="color:var(--muted)">No products yet.</p>';
+  }
+
+  initNav();
+  updateBadge();
+  loadHomePage();
+</script>
+</body>
+</html>
