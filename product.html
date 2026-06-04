@@ -204,12 +204,6 @@
   </div>
 </footer>
 
-<script>
-  (function(){
-    var s = JSON.parse(localStorage.getItem('qm_settings')||'{}');
-    if(s.topbar){ var tb = document.querySelector('.topbar'); if(tb) tb.innerHTML = s.topbar; }
-  })();
-</script>
 <script src="products-data.js"></script>
 <script src="qm-shared.js"></script>
 <script>
@@ -229,10 +223,10 @@
 
   function addToCartFromDetail() {
     if (!p) return;
-    let cart = JSON.parse(localStorage.getItem('cart')||'[]');
+    const cart = getCart();
     const ex = cart.find(i=>i.id==pid);
     if (ex) ex.qty+=qty; else cart.push({...p, qty});
-    localStorage.setItem('cart', JSON.stringify(cart));
+    setCart(cart);
     updateBadge();
     const t=document.getElementById('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500);
   }
