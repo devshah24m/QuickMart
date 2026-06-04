@@ -127,14 +127,16 @@
 </footer>
 
 <script src="products-data.js"></script>
+<script src="qm-shared.js"></script>
 <script>
-  // Apply site settings
-  (function(){
-    const s = JSON.parse(localStorage.getItem('qm_settings')||'{}');
-    if(s.topbar) document.querySelector('.topbar').innerHTML = s.topbar;
+  // Apply site settings from backend (in-memory cache via getSettings)
+  (async function(){
+    try {
+      const s = await getSettings();
+      if(s && s.topbar) document.querySelector('.topbar').innerHTML = s.topbar;
+    } catch(e) {}
   })();
 </script>
-<script src="qm-shared.js"></script>
 <script>
   function starsHTML(n) {
     n = parseFloat(n)||0;
