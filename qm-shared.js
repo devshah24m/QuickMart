@@ -4,6 +4,15 @@
 
 const GS_URL = 'https://script.google.com/macros/s/AKfycbwJZOusBsDObHNJYBdd26VArhFHfE67B4B3PMqNsRz3enA3bSZJwap_tSSKBxNAHraC/exec';
 
+// ── IN-MEMORY STORE (replaces localStorage/sessionStorage) ───
+const _QM = {
+  session : null,
+  cart    : [],
+  settings: null,
+  products: null,
+  zones   : null,
+};
+
 // ── API HELPERS ──────────────────────────────────────────────
 async function gsGet(params) {
   const url = GS_URL + '?' + new URLSearchParams(params).toString();
@@ -11,7 +20,6 @@ async function gsGet(params) {
   return res.json();
 }
 
-// FIX: Google Apps Script requires no-cors + correct Content-Type for POST to work
 async function gsPost(body) {
   const res = await fetch(GS_URL, {
     method      : 'POST',
@@ -22,26 +30,23 @@ async function gsPost(body) {
   return res.json();
 }
 
-// ── SESSION (localStorage — stores only safe user info, NEVER password) ──
-function getSession()   { return JSON.parse(localStorage.getItem('qm_session') || 'null'); }
+// ── SESSION (in-memory — never stored on disk) ────────────────
+function getSession()   { return _QM.session; }
 function saveSession(s) {
-  // Only save safe fields — never persist password
-  const safe = { id: s.id, name: s.name, email: s.email, role: s.role };
-  localStorage.setItem('qm_session', JSON.stringify(safe));
+  _QM.session = { id: s.id, name: s.name, email: s.email, role: s.role };
 }
-function clearSession() { localStorage.removeItem('qm_session'); }
+function clearSession() { _QM.session = null; }
 function isLoggedIn()   { return !!getSession(); }
 function isAdmin()      { const s = getSession(); return s && s.role === 'admin'; }
 function currentUser()  { return getSession(); }
 
 // ── PRODUCTS ─────────────────────────────────────────────────
 async function getAllProducts() {
-  const cached = sessionStorage.getItem('qm_products_cache');
-  if (cached) return JSON.parse(cached);
+  if (_QM.products) return _QM.products;
   try {
     const data = await gsGet({ action: 'getProducts' });
     if (data.ok && data.products.length) {
-      sessionStorage.setItem('qm_products_cache', JSON.stringify(data.products));
+      _QM.products = data.products;
       return data.products;
     }
   } catch(e) {}
@@ -49,7 +54,7 @@ async function getAllProducts() {
 }
 
 function clearProductCache() {
-  sessionStorage.removeItem('qm_products_cache');
+  _QM.products = null;
 }
 
 // ── AUTH ──────────────────────────────────────────────────────
@@ -66,7 +71,7 @@ async function registerUser(name, email, password) {
 async function loginUser(email, password) {
   try {
     const res = await gsPost({ action: 'loginUser', email, password });
-    if (res.ok) saveSession(res.user);  // saveSession strips password before storing
+    if (res.ok) saveSession(res.user);
     return res;
   } catch(e) {
     return { ok: false, msg: 'Network error. Please try again.' };
@@ -128,26 +133,28 @@ async function deleteProductRemote(id) {
 
 // ── SETTINGS ─────────────────────────────────────────────────
 async function getSettings() {
+  if (_QM.settings) return _QM.settings;
   const res = await gsGet({ action: 'getSettings' });
+  if (res.ok) _QM.settings = res.settings;
   return res.ok ? res.settings : {};
 }
 
 async function saveSettingsRemote(data) {
+  _QM.settings = null;
   return gsPost({ action: 'saveSettings', data });
 }
 
 // ── ZONES ────────────────────────────────────────────────────
 async function getZones() {
-  const cached = sessionStorage.getItem('qm_zones_cache');
-  if (cached) return JSON.parse(cached);
+  if (_QM.zones) return _QM.zones;
   const res = await gsGet({ action: 'getZones' });
   const zones = res.ok && res.zones.length ? res.zones : ['Hyderabad','Secunderabad','Bangalore','Mumbai','Delhi','Chennai','Pune','Kolkata'];
-  sessionStorage.setItem('qm_zones_cache', JSON.stringify(zones));
+  _QM.zones = zones;
   return zones;
 }
 
 async function saveZonesRemote(zones) {
-  sessionStorage.removeItem('qm_zones_cache');
+  _QM.zones = null;
   return gsPost({ action: 'saveZones', zones });
 }
 
@@ -190,9 +197,12 @@ document.addEventListener('click', e => {
   if (dd && menu && !menu.contains(e.target)) dd.style.display = 'none';
 });
 
-// ── CART (localStorage — fast, no need for sheets) ───────────
+// ── CART (in-memory) ─────────────────────────────────────────
+function getCart()     { return _QM.cart; }
+function setCart(cart) { _QM.cart = cart; }
+
 function updateBadge() {
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const cart = getCart();
   const el   = document.getElementById('nav-count');
   if (el) el.textContent = cart.reduce((a,b) => a + b.qty, 0);
 }
@@ -201,10 +211,10 @@ function addToCart(id, btn, productsArray) {
   const products = productsArray || (typeof PRODUCTS !== 'undefined' ? PRODUCTS : []);
   const p = products.find(x => x.id == id);
   if (!p) return;
-  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const cart = getCart();
   const ex = cart.find(i => i.id == id);
   if (ex) ex.qty++; else cart.push({ ...p, qty: 1 });
-  localStorage.setItem('cart', JSON.stringify(cart));
+  setCart(cart);
   if (btn) {
     btn.textContent = '✓ Added!';
     btn.classList.add('added');
