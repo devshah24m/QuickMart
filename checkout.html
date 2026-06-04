@@ -127,10 +127,9 @@
       if (emailEl && !emailEl.value) emailEl.value = _sess.email || '';
     }
     // Apply UPI from settings
-    const _settings = JSON.parse(localStorage.getItem('qm_settings')||'{}');
-    if (_settings.upi) document.querySelector('.upi-id').innerHTML = '📲 ' + _settings.upi;
+    getSettings().then(s => { if (s && s.upi) document.querySelector('.upi-id').innerHTML = '📲 ' + s.upi; });
 
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const cart = getCart();
     const total = cart.reduce((a,b) => a + b.price * b.qty, 0);
 
     document.getElementById('summaryItems').innerHTML = cart.map(i =>
@@ -194,7 +193,7 @@
       };
       // Save to Google Sheets
       try { await saveOrder(orderData); } catch(e) { console.warn('Sheet save failed', e); }
-      localStorage.removeItem('cart');
+      setCart([]);
 
       document.getElementById('modalOrderId').textContent = `#${orderId}`;
       document.getElementById('modalPhone').textContent = phone;
