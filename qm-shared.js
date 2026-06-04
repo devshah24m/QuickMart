@@ -33,12 +33,9 @@ async function gsGet(params) {
 async function gsPost(body) {
   console.log('[QM] POST body:', JSON.stringify(body));
   try {
-    const res  = await fetch(GS_URL, {
-      method  : 'POST',
-      redirect: 'follow',
-      headers : { 'Content-Type': 'text/plain;charset=utf-8' },
-      body    : JSON.stringify(body)
-    });
+    // Use GET with payload param to avoid CORS redirect issue with Apps Script POST
+    const url = GS_URL + '?payload=' + encodeURIComponent(JSON.stringify(body));
+    const res  = await fetch(url);
     const text = await res.text();
     console.log('[QM] POST raw response:', text);
     return JSON.parse(text);
@@ -287,4 +284,5 @@ function showError(containerId, msg) {
   const el = document.getElementById(containerId);
   if (el) el.innerHTML = `<div style="text-align:center;padding:40px;color:#e53e3e"><p>⚠ ${msg}</p></div>`;
 }
+
 
