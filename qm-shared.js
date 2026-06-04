@@ -18,18 +18,34 @@ const SESSION_KEY = '_qm_session';
 // ── API HELPERS ──────────────────────────────────────────────
 async function gsGet(params) {
   const url = GS_URL + '?' + new URLSearchParams(params).toString();
-  const res  = await fetch(url);
-  return res.json();
+  console.log('[QM] GET →', url);
+  try {
+    const res  = await fetch(url);
+    const text = await res.text();
+    console.log('[QM] GET raw response:', text.slice(0, 200));
+    return JSON.parse(text);
+  } catch(err) {
+    console.error('[QM] GET error:', err);
+    return { ok: false, msg: 'Network error: ' + err.message };
+  }
 }
 
 async function gsPost(body) {
-  const res = await fetch(GS_URL, {
-    method      : 'POST',
-    redirect    : 'follow',
-    headers     : { 'Content-Type': 'text/plain;charset=utf-8' },
-    body        : JSON.stringify(body)
-  });
-  return res.json();
+  console.log('[QM] POST body:', JSON.stringify(body));
+  try {
+    const res  = await fetch(GS_URL, {
+      method  : 'POST',
+      redirect: 'follow',
+      headers : { 'Content-Type': 'text/plain;charset=utf-8' },
+      body    : JSON.stringify(body)
+    });
+    const text = await res.text();
+    console.log('[QM] POST raw response:', text);
+    return JSON.parse(text);
+  } catch(err) {
+    console.error('[QM] POST error:', err);
+    return { ok: false, msg: 'Network error: ' + err.message };
+  }
 }
 
 // ── SESSION (sessionStorage — clears when tab/browser closes) ─
