@@ -29,6 +29,14 @@ function hashPassword(plain) {
 // ── GET handler ──────────────────────────────────────────────
 function doGet(e) {
   try {
+    // gsPost() sends POST body as ?payload= to work around CORS — handle it here
+    if (e.parameter.payload) {
+      let body;
+      try { body = JSON.parse(e.parameter.payload); } 
+      catch(_) { return corsOutput({ ok: false, msg: 'Invalid JSON in payload' }); }
+      return handlePost(body);
+    }
+
     const action = e.parameter.action;
     switch (action) {
       case 'getProducts': return corsOutput(getProducts());
@@ -49,7 +57,11 @@ function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); }
   catch(_) { return corsOutput({ ok: false, msg: 'Invalid JSON' }); }
+  return handlePost(body);
+}
 
+// ── Shared POST logic (used by both doPost and doGet ?payload=) ──
+function handlePost(body) {
   try {
     switch (body.action) {
       case 'saveProduct':   return corsOutput(saveProduct(body.data));
@@ -388,3 +400,5 @@ function saveZones(zones) {
   zones.forEach(city => sheet.appendRow([city]));
   return { ok: true };
 }
+
+
