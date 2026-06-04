@@ -30,6 +30,15 @@ function hashPassword(plain) {
 
 // ── GET handler ──────────────────────────────────────────────
 function doGet(e) {
+  // Support POST-via-GET: if 'payload' param present, route to doPost logic
+  if (e.parameter.payload) {
+    try {
+      const fakePost = { postData: { contents: e.parameter.payload } };
+      return doPost(fakePost);
+    } catch(err) {
+      return cors({ ok: false, msg: err.toString() });
+    }
+  }
   const action = e.parameter.action;
   try {
     switch (action) {
@@ -435,3 +444,4 @@ function saveZones(zones) {
   zones.forEach(city => sheet.appendRow([city]));
   return { ok: true };
 }
+
