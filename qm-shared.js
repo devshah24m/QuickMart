@@ -32,18 +32,33 @@ async function gsGet(params) {
 
 async function gsPost(body) {
   console.log('[QM] POST body:', JSON.stringify(body));
-  try {
-    // Use GET with payload param to avoid CORS redirect issue with Apps Script POST
-    const url = GS_URL + '?payload=' + encodeURIComponent(JSON.stringify(body));
-    const res  = await fetch(url);
-    const text = await res.text();
-    console.log('[QM] POST raw response:', text);
-    return JSON.parse(text);
-  } catch(err) {
-    console.error('[QM] POST error:', err);
-    return { ok: false, msg: 'Network error: ' + err.message };
-  }
+  return new Promise((resolve) => {
+    const cbName = '_qmcb_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve({ ok: false, msg: 'Request timed out. Please try again.' });
+    }, 15000);
+    window[cbName] = (data) => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      document.body.removeChild(script);
+      console.log('[QM] JSONP response:', data);
+      resolve(data);
+    };
+    const url = GS_URL + '?callback=' + cbName + '&payload=' + encodeURIComponent(JSON.stringify(body));
+    script.src = url;
+    script.onerror = () => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve({ ok: false, msg: 'Network error. Please try again.' });
+    };
+    document.body.appendChild(script);
+  });
 }
+
 
 // ── SESSION (sessionStorage — clears when tab/browser closes) ─
 function getSession() {
@@ -284,5 +299,6 @@ function showError(containerId, msg) {
   const el = document.getElementById(containerId);
   if (el) el.innerHTML = `<div style="text-align:center;padding:40px;color:#e53e3e"><p>⚠ ${msg}</p></div>`;
 }
+
 
 
