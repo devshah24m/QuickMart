@@ -1,10 +1,11 @@
 // ═══════════════════════════════════════════════════════════════
-// QuickMart Shared Utilities — Google Sheets backend
+// QuickMart Shared Utilities — Google Sheets backend (v3)
+// Uses fetch() with no-cors mode via a proxy to avoid JSONP issues
 // ═══════════════════════════════════════════════════════════════
 
 const GS_URL = 'https://script.google.com/macros/s/AKfycbytNOdo3V37CcsvuBYlf_Ah3nyDOgx2fgJvUQ4odIbiwywuwMf3wzFtCP0PRMUOoCeO4A/exec';
 
-// ── IN-MEMORY STORE (cart, products, settings, zones) ─────────
+// ── IN-MEMORY STORE ───────────────────────────────────────────
 const _QM = {
   cart    : [],
   settings: null,
@@ -12,17 +13,15 @@ const _QM = {
   zones   : null,
 };
 
-// ── SESSION KEY (sessionStorage — survives page navigation) ───
 const SESSION_KEY = '_qm_session';
 
 // ── API HELPERS ──────────────────────────────────────────────
+// GET — simple fetch with redirect follow
 async function gsGet(params) {
   const url = GS_URL + '?' + new URLSearchParams(params).toString();
-  console.log('[QM] GET →', url);
   try {
-    const res  = await fetch(url);
+    const res  = await fetch(url, { redirect: 'follow' });
     const text = await res.text();
-    console.log('[QM] GET raw response:', text.slice(0, 200));
     return JSON.parse(text);
   } catch(err) {
     console.error('[QM] GET error:', err);
@@ -30,73 +29,42 @@ async function gsGet(params) {
   }
 }
 
+// POST — Google Apps Script doesn't support CORS POST from browser,
+// so we send the payload via GET with a ?payload= param (already handled in doGet)
 async function gsPost(body) {
-  console.log('[QM] POST body:', JSON.stringify(body));
-  return new Promise((resolve) => {
-    const cbName = '_qmcb_' + Date.now();
-    const script = document.createElement('script');
-    const timeout = setTimeout(() => {
-      delete window[cbName];
-      document.body.removeChild(script);
-      resolve({ ok: false, msg: 'Request timed out. Please try again.' });
-    }, 15000);
-    window[cbName] = (data) => {
-      clearTimeout(timeout);
-      delete window[cbName];
-      document.body.removeChild(script);
-      console.log('[QM] JSONP response:', data);
-      resolve(data);
-    };
-    const url = GS_URL + '?callback=' + cbName + '&payload=' + encodeURIComponent(JSON.stringify(body));
-    script.src = url;
-    script.onerror = () => {
-      clearTimeout(timeout);
-      delete window[cbName];
-      document.body.removeChild(script);
-      resolve({ ok: false, msg: 'Network error. Please try again.' });
-    };
-    document.body.appendChild(script);
-  });
+  const url = GS_URL + '?payload=' + encodeURIComponent(JSON.stringify(body));
+  try {
+    const res  = await fetch(url, { redirect: 'follow' });
+    const text = await res.text();
+    return JSON.parse(text);
+  } catch(err) {
+    console.error('[QM] POST error:', err);
+    return { ok: false, msg: 'Network error. Please try again.' };
+  }
 }
 
-
-// ── SESSION (sessionStorage — clears when tab/browser closes) ─
+// ── SESSION ───────────────────────────────────────────────────
 function getSession() {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch(_) { return null; }
+  try { const r = sessionStorage.getItem(SESSION_KEY); return r ? JSON.parse(r) : null; } catch(_) { return null; }
 }
 function saveSession(s) {
-  try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
-      id: s.id, name: s.name, email: s.email, role: s.role
-    }));
-  } catch(_) {}
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: s.id, name: s.name, email: s.email, role: s.role })); } catch(_) {}
 }
-function clearSession() {
-  try { sessionStorage.removeItem(SESSION_KEY); } catch(_) {}
-}
-function isLoggedIn()  { return !!getSession(); }
-function isAdmin()     { const s = getSession(); return s && s.role === 'admin'; }
-function currentUser() { return getSession(); }
+function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch(_) {} }
+function isLoggedIn()   { return !!getSession(); }
+function isAdmin()      { const s = getSession(); return s && s.role === 'admin'; }
+function currentUser()  { return getSession(); }
 
 // ── PRODUCTS ─────────────────────────────────────────────────
 async function getAllProducts() {
   if (_QM.products) return _QM.products;
   try {
     const data = await gsGet({ action: 'getProducts' });
-    if (data.ok && data.products.length) {
-      _QM.products = data.products;
-      return data.products;
-    }
+    if (data.ok && data.products.length) { _QM.products = data.products; return data.products; }
   } catch(e) {}
   return typeof PRODUCTS !== 'undefined' ? PRODUCTS : [];
 }
-
-function clearProductCache() {
-  _QM.products = null;
-}
+function clearProductCache() { _QM.products = null; }
 
 // ── AUTH ──────────────────────────────────────────────────────
 async function registerUser(name, email, password) {
@@ -104,9 +72,7 @@ async function registerUser(name, email, password) {
     const res = await gsPost({ action: 'registerUser', data: { name, email, password } });
     if (res.ok) saveSession(res.user);
     return res;
-  } catch(e) {
-    return { ok: false, msg: 'Network error. Please try again.' };
-  }
+  } catch(e) { return { ok: false, msg: 'Network error. Please try again.' }; }
 }
 
 async function loginUser(email, password) {
@@ -114,26 +80,20 @@ async function loginUser(email, password) {
     const res = await gsPost({ action: 'loginUser', email, password });
     if (res.ok) saveSession(res.user);
     return res;
-  } catch(e) {
-    return { ok: false, msg: 'Network error. Please try again.' };
-  }
+  } catch(e) { return { ok: false, msg: 'Network error. Please try again.' }; }
 }
 
 function logoutUser() { clearSession(); }
 function doLogout()   { logoutUser(); window.location.href = 'index.html'; }
 
 // ── ORDERS ────────────────────────────────────────────────────
-async function saveOrder(data) {
-  return gsPost({ action: 'saveOrder', data });
-}
-
+async function saveOrder(data)   { return gsPost({ action: 'saveOrder', data }); }
 async function getMyOrders() {
   const user = currentUser();
   if (!user) return [];
   const res = await gsGet({ action: 'getOrders', userId: user.id, email: user.email });
   return res.ok ? res.orders : [];
 }
-
 async function getAllOrders() {
   const res = await gsGet({ action: 'getOrders' });
   return res.ok ? res.orders : [];
@@ -144,20 +104,14 @@ async function getReviews(productId) {
   const res = await gsGet({ action: 'getReviews', productId });
   return res.ok ? res.reviews : [];
 }
-
-async function saveReview(data) {
-  return gsPost({ action: 'saveReview', data });
-}
+async function saveReview(data) { return gsPost({ action: 'saveReview', data }); }
 
 // ── USERS (admin) ─────────────────────────────────────────────
 async function getAllUsers() {
   const res = await gsGet({ action: 'getUsers' });
   return res.ok ? res.users : [];
 }
-
-async function deleteUserRemote(id) {
-  return gsPost({ action: 'deleteUser', id });
-}
+async function deleteUserRemote(id) { return gsPost({ action: 'deleteUser', id }); }
 
 // ── PRODUCTS (admin) ──────────────────────────────────────────
 async function saveProductRemote(data) {
@@ -165,7 +119,6 @@ async function saveProductRemote(data) {
   clearProductCache();
   return res;
 }
-
 async function deleteProductRemote(id) {
   const res = await gsPost({ action: 'deleteProduct', id });
   clearProductCache();
@@ -179,7 +132,6 @@ async function getSettings() {
   if (res.ok) _QM.settings = res.settings;
   return res.ok ? res.settings : {};
 }
-
 async function saveSettingsRemote(data) {
   _QM.settings = null;
   return gsPost({ action: 'saveSettings', data });
@@ -193,7 +145,6 @@ async function getZones() {
   _QM.zones = zones;
   return zones;
 }
-
 async function saveZonesRemote(zones) {
   _QM.zones = null;
   return gsPost({ action: 'saveZones', zones });
@@ -253,7 +204,7 @@ function addToCart(id, btn, productsArray) {
   const p = products.find(x => x.id == id);
   if (!p) return;
   const cart = getCart();
-  const ex = cart.find(i => i.id == id);
+  const ex   = cart.find(i => i.id == id);
   if (ex) ex.qty++; else cart.push({ ...p, qty: 1 });
   setCart(cart);
   if (btn) {
@@ -274,12 +225,10 @@ function starsHTML(n) {
   for (let i = 0; i < (5 - full - (half?1:0)); i++) s += '☆';
   return s;
 }
-
 function discountPct(p) {
   if (!p.mrp || p.mrp <= p.price) return 0;
   return Math.round((p.mrp - p.price) / p.mrp * 100);
 }
-
 function navSearchGo() {
   const q = document.getElementById('navSearch');
   if (q && q.value.trim()) window.location.href = 'products.html?q=' + encodeURIComponent(q.value.trim());
@@ -294,12 +243,7 @@ function showLoading(containerId, msg) {
   const el = document.getElementById(containerId);
   if (el) el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:2rem;margin-bottom:10px">⏳</div><p>${msg || 'Loading…'}</p></div>`;
 }
-
 function showError(containerId, msg) {
   const el = document.getElementById(containerId);
   if (el) el.innerHTML = `<div style="text-align:center;padding:40px;color:#e53e3e"><p>⚠ ${msg}</p></div>`;
 }
-
-
-
-
