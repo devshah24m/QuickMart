@@ -2,7 +2,7 @@
 // QuickMart Shared Utilities — Google Sheets backend
 // ═══════════════════════════════════════════════════════════════
 
-const GS_URL = 'https://script.google.com/macros/s/AKfycbytNOdo3V37CcsvuBYlf_Ah3nyDOgx2fgJvUQ4odIbiwywuwMf3wzFtCP0PRMUOoCeO4A/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbyOnA-wpjpa1UZ9LoRlrB_UVVE8D8x-3eFIxFDNl8Brs193fFfRaTK--s6pZgJeG7MTCQ/exec';
 
 // ── IN-MEMORY STORE (cart, products, settings, zones) ─────────
 const _QM = {
@@ -287,3 +287,4 @@ function showError(containerId, msg) {
   const el = document.getElementById(containerId);
   if (el) el.innerHTML = `<div style="text-align:center;padding:40px;color:#e53e3e"><p>⚠ ${msg}</p></div>`;
 }
+
