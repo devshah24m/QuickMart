@@ -4,7 +4,7 @@
 // Then: Deploy → New Deployment → Web App → Anyone → Deploy
 // ═══════════════════════════════════════════════════════════════
 
-const SHEET_ID = '10K-yhy5I1qI9kxiiOAZK6Orc1wnIx-JRE19uoBj4mUg';
+const SHEET_ID = '1P-GbEDwef6d7NTcX3L1Ud2wysFptbm_r_zxMj6nXnGQ';
 
 const SHEETS = {
   products : 'Products',
@@ -16,7 +16,12 @@ const SHEETS = {
 };
 
 // ── CORS helper ──────────────────────────────────────────────
-function cors(output) {
+function cors(output, callback) {
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + JSON.stringify(output) + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService
     .createTextOutput(JSON.stringify(output))
     .setMimeType(ContentService.MimeType.JSON);
@@ -30,28 +35,43 @@ function hashPassword(plain) {
 
 // ── GET handler ──────────────────────────────────────────────
 function doGet(e) {
-  // Support POST-via-GET: if 'payload' param present, route to doPost logic
+  const cb = e.parameter.callback || null;
+  // JSONP POST-via-GET: payload param
   if (e.parameter.payload) {
     try {
-      const fakePost = { postData: { contents: e.parameter.payload } };
-      return doPost(fakePost);
+      const body = JSON.parse(e.parameter.payload);
+      let result;
+      switch (body.action) {
+        case 'saveProduct':   result = saveProduct(body.data); break;
+        case 'deleteProduct': result = deleteProduct(body.id); break;
+        case 'saveOrder':     result = saveOrder(body.data); break;
+        case 'updateOrder':   result = updateOrderStatus(body.orderId, body.status); break;
+        case 'registerUser':  result = registerUser(body.data); break;
+        case 'loginUser':     result = loginUser(body.email, body.password); break;
+        case 'saveReview':    result = saveReview(body.data); break;
+        case 'saveSettings':  result = saveSettings(body.data); break;
+        case 'saveZones':     result = saveZones(body.zones); break;
+        case 'deleteUser':    result = deleteUser(body.id); break;
+        default:              result = { ok: false, msg: 'Unknown action: ' + body.action };
+      }
+      return cors(result, cb);
     } catch(err) {
-      return cors({ ok: false, msg: err.toString() });
+      return cors({ ok: false, msg: err.toString() }, cb);
     }
   }
   const action = e.parameter.action;
   try {
     switch (action) {
-      case 'getProducts': return cors(getProducts());
-      case 'getOrders':   return cors(getOrders(e.parameter.userId, e.parameter.email));
-      case 'getUsers':    return cors(getUsers());
-      case 'getReviews':  return cors(getReviews(e.parameter.productId));
-      case 'getSettings': return cors(getSettings());
-      case 'getZones':    return cors(getZones());
-      default:            return cors({ ok: false, msg: 'Unknown action: ' + action });
+      case 'getProducts': return cors(getProducts(), cb);
+      case 'getOrders':   return cors(getOrders(e.parameter.userId, e.parameter.email), cb);
+      case 'getUsers':    return cors(getUsers(), cb);
+      case 'getReviews':  return cors(getReviews(e.parameter.productId), cb);
+      case 'getSettings': return cors(getSettings(), cb);
+      case 'getZones':    return cors(getZones(), cb);
+      default:            return cors({ ok: false, msg: 'Unknown action: ' + action }, cb);
     }
   } catch(err) {
-    return cors({ ok: false, msg: err.toString() });
+    return cors({ ok: false, msg: err.toString() }, cb);
   }
 }
 
@@ -444,4 +464,5 @@ function saveZones(zones) {
   zones.forEach(city => sheet.appendRow([city]));
   return { ok: true };
 }
+
 
