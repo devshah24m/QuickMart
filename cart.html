@@ -49,17 +49,11 @@
   </div>
 </footer>
 
-  <script>
-  (function(){
-    var s = JSON.parse(localStorage.getItem('qm_settings')||'{}');
-    if(s.topbar){ var tb = document.querySelector('.topbar'); if(tb) tb.innerHTML = s.topbar; }
-  })();
-</script>
-<script src="products-data.js"></script>
+  <script src="products-data.js"></script>
 <script src="qm-shared.js"></script>
   <script>
     function renderCart() {
-      const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const cart = getCart();
       const itemsDiv = document.getElementById('cartItems');
       const summaryDiv = document.getElementById('cartSummary');
       const total = cart.reduce((a,b) => a + b.price * b.qty, 0);
@@ -103,16 +97,16 @@
     }
 
     function changeQty(id, delta) {
-      let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+      let cart = getCart();
       const item = cart.find(i => i.id === id);
       if (item) { item.qty += delta; if (item.qty <= 0) cart = cart.filter(i => i.id !== id); }
-      localStorage.setItem('cart', JSON.stringify(cart));
+      setCart(cart);
       initNav(); updateBadge(); renderCart();
     }
 
     function removeItem(id) {
-      let cart = JSON.parse(localStorage.getItem('cart') || '[]').filter(i => i.id !== id);
-      localStorage.setItem('cart', JSON.stringify(cart));
+      const cart = getCart().filter(i => i.id !== id);
+      setCart(cart);
       initNav(); updateBadge(); renderCart();
     }
 
