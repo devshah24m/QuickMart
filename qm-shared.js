@@ -4,14 +4,16 @@
 
 const GS_URL = 'https://script.google.com/macros/s/AKfycbwJZOusBsDObHNJYBdd26VArhFHfE67B4B3PMqNsRz3enA3bSZJwap_tSSKBxNAHraC/exec';
 
-// ── IN-MEMORY STORE (replaces localStorage/sessionStorage) ───
+// ── IN-MEMORY STORE (cart, products, settings, zones) ─────────
 const _QM = {
-  session : null,
   cart    : [],
   settings: null,
   products: null,
   zones   : null,
 };
+
+// ── SESSION KEY (sessionStorage — survives page navigation) ───
+const SESSION_KEY = '_qm_session';
 
 // ── API HELPERS ──────────────────────────────────────────────
 async function gsGet(params) {
@@ -30,15 +32,26 @@ async function gsPost(body) {
   return res.json();
 }
 
-// ── SESSION (in-memory — never stored on disk) ────────────────
-function getSession()   { return _QM.session; }
-function saveSession(s) {
-  _QM.session = { id: s.id, name: s.name, email: s.email, role: s.role };
+// ── SESSION (sessionStorage — clears when tab/browser closes) ─
+function getSession() {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(_) { return null; }
 }
-function clearSession() { _QM.session = null; }
-function isLoggedIn()   { return !!getSession(); }
-function isAdmin()      { const s = getSession(); return s && s.role === 'admin'; }
-function currentUser()  { return getSession(); }
+function saveSession(s) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+      id: s.id, name: s.name, email: s.email, role: s.role
+    }));
+  } catch(_) {}
+}
+function clearSession() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(_) {}
+}
+function isLoggedIn()  { return !!getSession(); }
+function isAdmin()     { const s = getSession(); return s && s.role === 'admin'; }
+function currentUser() { return getSession(); }
 
 // ── PRODUCTS ─────────────────────────────────────────────────
 async function getAllProducts() {
